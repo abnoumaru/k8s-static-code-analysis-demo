@@ -1,8 +1,8 @@
 on:
   pull_request:
+    branches:
+      - main
     types: [opened, synchronize]
-    paths:
-      - './charts/**'
 
 jobs:
   static-code-analysis:
@@ -78,3 +78,22 @@ jobs:
             echo "All steps succeeded"
             exit 0
           fi
+
+      - name: Comment Pull requests
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `### Helm lint \
+            `${{ steps.helm_lint.outputs.stdout }}`\
+            `${{ steps.helm_lint.outputs.stderr }}`\
+            ### Kubeconform
+            `${{ steps.kubeconform.outputs.stdout }}`\
+            `${{ steps.kubeconform.outputs.stderr }}`\
+            `;
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## static code analysis results \n` + output
+            })

@@ -64,3 +64,4 @@ k8s-static-code-analysis-demo
 - https://polaris.docs.fairwinds.com/infrastructure-as-code/#running-in-a-ci-pipeline
 - https://dev.to/aws-builders/improving-your-cicd-pipeline-helm-charts-security-scanning-with-trivy-and-github-actions-3315
 - https://weblog.grimoh.net/entry/2022/01/02/100000
+- https://qiita.com/suzuki0430/items/8b02f4d978ed11cd89b8
