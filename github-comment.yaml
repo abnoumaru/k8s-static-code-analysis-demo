@@ -1,5 +1,5 @@
 ---
-# skip_no_token: true
+skip_no_token: true
 base:
   org: abnoumaru
   repo: k8s-static-code-analysis-demo

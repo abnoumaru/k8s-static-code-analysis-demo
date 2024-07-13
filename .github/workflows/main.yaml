@@ -3,12 +3,14 @@ on:
     branches:
       - 'main'
   pull_request:
-    branches:
-      - '*'
+    paths:
+      - './charts/*'
 
 jobs:
   static-code-analysis:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     strategy:
       matrix:
         # ツールによってチャートのパスを明示する必要があるためリストアップしておく
