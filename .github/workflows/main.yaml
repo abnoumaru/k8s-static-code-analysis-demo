@@ -69,16 +69,6 @@ jobs:
         continue-on-error: true
         id: trivy
 
-      - name: Check results
-        run: |
-          if [ ${{ steps.helm_lint.outcome }} == 'failure' ] || [ ${{ steps.kubeconform.outcome }} == 'failure' ] || [ ${{ steps.pluto.outcome }} == 'failure' ] || [ ${{ steps.polaris.outcome }} == 'failure' || [ ${{ steps.trivy.outcome }} == 'failure' ] ]; then
-            echo "One or more steps failed"
-            exit 1
-          else
-            echo "All steps succeeded"
-            exit 0
-          fi
-
       - name: Comment Pull requests
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
@@ -97,3 +87,13 @@ jobs:
               repo: context.repo.repo,
               body: `## static code analysis results \n` + output
             })
+
+      - name: Check results
+        run: |
+          if [ ${{ steps.helm_lint.outcome }} == 'failure' ] || [ ${{ steps.kubeconform.outcome }} == 'failure' ] || [ ${{ steps.pluto.outcome }} == 'failure' ] || [ ${{ steps.polaris.outcome }} == 'failure' || [ ${{ steps.trivy.outcome }} == 'failure' ] ]; then
+            echo "One or more steps failed"
+            exit 1
+          else
+            echo "All steps succeeded"
+            exit 0
+          fi
