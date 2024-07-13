@@ -1,7 +1,4 @@
 on:
-  push: # 検証時にmainにpush時に実行されたほうが繰り返しやすいため設定
-    branches:
-      - 'main'
   pull_request:
     paths:
       - './charts/*'
