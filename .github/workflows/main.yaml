@@ -74,19 +74,19 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const output = `### Helm lint \
-            `${{ steps.helm_lint.outputs.stdout }}`\
-            `${{ steps.helm_lint.outputs.stderr }}`\
-            ### Kubeconform
-            `${{ steps.kubeconform.outputs.stdout }}`\
-            `${{ steps.kubeconform.outputs.stderr }}`\
-            `;
+            # const output = "### Helm lint\n" +
+            #   "${{ steps.helm_lint.outputs.stdout }}" +
+            #   "${{ steps.helm_lint.outputs.stderr }}" +
+            #   "### Kubeconform\n" +
+            #   "${{ steps.kubeconform.outputs.stdout }}" +
+            #   "${{ steps.kubeconform.outputs.stderr }}";
+            const output = "Test!"
             github.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## static code analysis results \n` + output
-            })
+              body: `## Static Code Analysis Results\n` + output
+            });
 
       - name: Check results
         run: |
