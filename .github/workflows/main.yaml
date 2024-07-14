@@ -20,6 +20,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install github-comment
+        run: |
+          wget -q -O - https://github.com/suzuki-shunsuke/github-comment/releases/download/v6.1.0/github-comment_6.1.0_linux_amd64.tar.gz | tar -zxvf - -C /usr/local/bin
+
       - name: Set up helm
         uses: azure/setup-helm@fe7b79cd5ee1e45176fcad797de68ecaf3ca4814 # v4.2.0
 
@@ -36,22 +40,22 @@ jobs:
           wget -q -O - https://github.com/FairwindsOps/pluto/releases/download/v5.19.4/pluto_5.19.4_linux_amd64.tar.gz | tar -zxvf - -C /usr/local/bin
 
       - name: "[${{ matrix.chart }}]: Lint Helm Chart"
-        run: helm lint ./charts/${{ matrix.chart }}
+        run: github-comment exec -pr ${{ github.event.number }} -k static-code-analysis -- helm lint ./charts/${{ matrix.chart }}
         continue-on-error: true
         id: helm_lint
 
       - name: "[${{ matrix.chart }}]: Run kubeconform"
-        run: kubeconform --summary -output json ./charts/${{ matrix.chart }}
+        run: github-comment exec -pr ${{ github.event.number }} -k static-code-analysis -- kubeconform --summary -output json ./charts/${{ matrix.chart }}
         continue-on-error: true
         id: kubeconform
 
       - name: "[${{ matrix.chart }}]: Run Polaris audit"
-        run: polaris audit --only-show-failed-tests --helm-chart ./charts/${{ matrix.chart }}
+        run: github-comment exec -pr ${{ github.event.number }} -k static-code-analysis -- polaris audit --only-show-failed-tests --helm-chart ./charts/${{ matrix.chart }}
         continue-on-error: true
         id: polaris
 
       - name: "[${{ matrix.chart }}]: Run Pluto"
-        run: pluto detect-files -d ./charts/${{ matrix.chart }}
+        run: github-comment exec -pr ${{ github.event.number }} -k static-code-analysis -- pluto detect-files -d ./charts/${{ matrix.chart }}
         continue-on-error: true
         id: pluto
 
@@ -68,25 +72,6 @@ jobs:
           severity: 'CRITICAL,HIGH'
         continue-on-error: true
         id: trivy
-
-      - name: Comment Pull requests
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            # const output = "### Helm lint\n" +
-            #   "${{ steps.helm_lint.outputs.stdout }}" +
-            #   "${{ steps.helm_lint.outputs.stderr }}" +
-            #   "### Kubeconform\n" +
-            #   "${{ steps.kubeconform.outputs.stdout }}" +
-            #   "${{ steps.kubeconform.outputs.stderr }}";
-            const output = "Test!"
-            github.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `## Static Code Analysis Results\n` + output
-            });
 
       - name: Check results
         run: |

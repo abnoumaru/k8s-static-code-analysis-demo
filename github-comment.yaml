@@ -3,3 +3,33 @@
 base:
   org: abnoumaru
   repo: k8s-static-code-analysis-demo
+
+exec:
+  static-code-analysis:
+    - when: ExitCode !=0
+      template: |
+        失敗しちゃった... :sob: 
+
+        exit code: {{.ExitCode}}
+
+        ```
+        $ {{.Command}}
+        ```
+
+        Stdout:
+
+        ```
+        {{.Stdout}}
+        ```
+
+        Stderr:
+
+        ```
+        {{.Stderr}}
+        ```
+
+        CombinedOutput:
+
+        ```
+        {{.CombinedOutput}}
+        ```
