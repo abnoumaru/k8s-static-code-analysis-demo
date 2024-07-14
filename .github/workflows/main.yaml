@@ -40,21 +40,29 @@ jobs:
           wget -q -O - https://github.com/FairwindsOps/pluto/releases/download/v5.19.4/pluto_5.19.4_linux_amd64.tar.gz | tar -zxvf - -C /usr/local/bin
 
       - name: "[${{ matrix.chart }}]: Lint Helm Chart"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: github-comment exec -pr ${{ github.event.number }} -k static-code-analysis -- helm lint ./charts/${{ matrix.chart }}
         continue-on-error: true
         id: helm_lint
 
       - name: "[${{ matrix.chart }}]: Run kubeconform"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: github-comment exec -pr ${{ github.event.number }} -k static-code-analysis -- kubeconform --summary -output json ./charts/${{ matrix.chart }}
         continue-on-error: true
         id: kubeconform
 
       - name: "[${{ matrix.chart }}]: Run Polaris audit"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: github-comment exec -pr ${{ github.event.number }} -k static-code-analysis -- polaris audit --only-show-failed-tests --helm-chart ./charts/${{ matrix.chart }}
         continue-on-error: true
         id: polaris
 
       - name: "[${{ matrix.chart }}]: Run Pluto"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: github-comment exec -pr ${{ github.event.number }} -k static-code-analysis -- pluto detect-files -d ./charts/${{ matrix.chart }}
         continue-on-error: true
         id: pluto
