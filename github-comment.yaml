@@ -8,27 +8,19 @@ exec:
   static-code-analysis:
     - when: ExitCode !=0
       template: |
-        失敗しちゃった... :sob: 
+        異常終了した静的解析があります。
 
-        exit code: {{.ExitCode}}
+        ## 実行コマンド
 
         ```
         $ {{.Command}}
         ```
 
-        Stdout:
+        ## ExitCode
 
-        ```
-        {{.Stdout}}
-        ```
+        {{.ExitCode}}
 
-        Stderr:
-
-        ```
-        {{.Stderr}}
-        ```
-
-        CombinedOutput:
+        # Output:
 
         ```
         {{.CombinedOutput}}
