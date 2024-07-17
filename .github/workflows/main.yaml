@@ -55,7 +55,7 @@ jobs:
       - name: "[${{ matrix.chart }}]: Run kubeconform"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: github-comment exec -pr ${{ github.event.number }} -k static-code-analysis -- kubeconform --summary -output pretty ./charts/${{ matrix.chart }}
+        run: github-comment exec -pr ${{ github.event.number }} -k static-code-analysis -- helm template ./charts/${{ matrix.chart }} | kubeconform --summary -output pretty
         continue-on-error: true
         id: kubeconform
 
