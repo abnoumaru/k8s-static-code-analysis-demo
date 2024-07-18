@@ -83,12 +83,15 @@ jobs:
           github-comment exec -pr ${{ github.event.number }} -k static-code-analysis -- pluto detect-files -d ./charts/${{ matrix.chart }}
         continue-on-error: true
 
+      # SARIFのアップロードはGitHub Advanced Securityが有効化されている場合のみ可能なためformatをtableにして結果を出力するのみとする
+      # see. https://docs.github.com/en/code-security/code-scanning/troubleshooting-sarif-uploads/ghas-required
       - name: "[${{ matrix.chart }}]: Run Trivy vulnerability scanner in IaC mode"
         id: trivy
         uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # tag=0.24.0
         with:
           scan-type: 'config'
           hide-progress: false
+          # format: 'sarif'
           format: 'table'
           scan-ref: 'charts/${{ matrix.chart }}'
           # output: 'trivy-results.sarif'
@@ -96,6 +99,13 @@ jobs:
           ignore-unfixed: true
           severity: 'CRITICAL,HIGH'
         continue-on-error: true
+
+      # SARIFのアップロードはGitHub Advanced Securityが有効化されている場合のみ可能なためコメントアウト
+      # see. https://docs.github.com/en/code-security/code-scanning/troubleshooting-sarif-uploads/ghas-required
+      # - name: Upload Trivy scan results to GitHub Security tab
+      #   uses: github/codeql-action/upload-sarif@v2
+      #   with:
+      #     sarif_file: 'trivy-results.sarif'
 
       - name: Check results
         run: |
