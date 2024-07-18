@@ -20,7 +20,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      ### 各種ツールのインストール
+      ##############
+      ### 事前準備 ###
+      ##############
 
       # 各種ツールの実行結果をPull Requestにコメントして通知するために利用
       - name: Install github-comment
@@ -42,38 +44,47 @@ jobs:
         run: |
           wget -q -O - https://github.com/FairwindsOps/pluto/releases/download/v5.19.4/pluto_5.19.4_linux_amd64.tar.gz | tar -zxvf - -C /usr/local/bin
 
-      ### 静的解析
+      #############
+      ### 静的解析 #
+      #############
 
       - name: "[${{ matrix.chart }}]: Lint Helm Chart"
+        id: helm_lint
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         # Pull Requestに出力される結果はexit codeが0ではない場合であるため動作確認のため `--strict` オプションを付与
-        run: github-comment exec -pr ${{ github.event.number }} -k static-code-analysis -- helm lint --strict ./charts/${{ matrix.chart }}
+        run: | 
+          github-comment exec -pr ${{ github.event.number }} -k static-code-analysis -- helm lint --strict ./charts/${{ matrix.chart }}
         continue-on-error: true
-        id: helm_lint
 
       - name: "[${{ matrix.chart }}]: Run kubeconform"
+        id: kubeconform
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: github-comment exec -pr ${{ github.event.number }} -k static-code-analysis -- helm template ./charts/${{ matrix.chart }} | kubeconform --summary -output pretty
+        run: |
+          # kubeconform は Helm チャートを受け付けないため、Helm チャートを YAML に展開してから実行
+          helm template ./charts/${{ matrix.chart }} > ./render_charts_${{ matrix.chart }}.yaml && \
+          github-comment exec -pr ${{ github.event.number }} -k static-code-analysis -- kubeconform --summary -output pretty ./render_charts_${{ matrix.chart }}.yaml
         continue-on-error: true
-        id: kubeconform
 
       - name: "[${{ matrix.chart }}]: Run Polaris audit"
+        id: polaris
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: github-comment exec -pr ${{ github.event.number }} -k static-code-analysis -- polaris audit --only-show-failed-tests --format pretty --severity danger --set-exit-code-on-danger --helm-chart ./charts/${{ matrix.chart }}
+        run: | 
+          github-comment exec -pr ${{ github.event.number }} -k static-code-analysis -- polaris audit --only-show-failed-tests --format pretty --severity danger --set-exit-code-on-danger --helm-chart ./charts/${{ matrix.chart }}
         continue-on-error: true
-        id: polaris
 
       - name: "[${{ matrix.chart }}]: Run Pluto"
+        id: pluto
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: github-comment exec -pr ${{ github.event.number }} -k static-code-analysis -- pluto detect-files -d ./charts/${{ matrix.chart }}
+        run: | 
+          github-comment exec -pr ${{ github.event.number }} -k static-code-analysis -- pluto detect-files -d ./charts/${{ matrix.chart }}
         continue-on-error: true
-        id: pluto
 
       - name: "[${{ matrix.chart }}]: Run Trivy vulnerability scanner in IaC mode"
+        id: trivy
         uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # tag=0.24.0
         with:
           scan-type: 'config'
@@ -85,7 +96,6 @@ jobs:
           ignore-unfixed: true
           severity: 'CRITICAL,HIGH'
         continue-on-error: true
-        id: trivy
 
       - name: Check results
         run: |
